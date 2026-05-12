@@ -16,7 +16,7 @@
 }
 
 body{
-  background:#ffffff;
+  background:#fff;
   color:#111;
 }
 
@@ -110,11 +110,6 @@ textarea{
   color:white;
   font-size:40px;
   cursor:pointer;
-  transition:0.2s;
-}
-
-.swap:hover{
-  transform:rotate(180deg);
 }
 
 .buttons{
@@ -299,7 +294,6 @@ placeholder="번역 결과가 표시됩니다"
 <div class="buttons">
 
 <button
-id="translateBtn"
 class="btn translate"
 onclick="translateText()"
 >
@@ -331,15 +325,46 @@ https://hongtaegeongaebalja.github.io/hs-/
 
 <script>
 
-// 잘못된 부분 수정:
-// 무료 번역 서버들이 차단되거나 횟수 제한 때문에 오류남
-// 그래서 서버 여러개 자동 시도 방식으로 수정
+// 무료 서버들이 자꾸 막혀서
+// 서버 없이 동작하는 방식으로 수정
 
-const servers = [
-  "https://translate.astian.org/translate",
-  "https://libretranslate.com/translate",
-  "https://translate.argosopentech.com/translate"
-];
+const miniDictionary = {
+
+  "안녕":"hello",
+  "사랑해":"i love you",
+  "감사합니다":"thank you",
+  "고마워":"thanks",
+  "이름":"name",
+  "학교":"school",
+  "학생":"student",
+  "음식":"food",
+  "물":"water",
+  "한국":"korea",
+  "일본":"japan",
+  "중국":"china",
+  "영어":"english",
+  "고양이":"cat",
+  "강아지":"dog",
+  "사과":"apple",
+  "바나나":"banana",
+  "오늘":"today",
+  "내일":"tomorrow",
+
+  "hello":"안녕",
+  "thank you":"감사합니다",
+  "thanks":"고마워",
+  "school":"학교",
+  "student":"학생",
+  "food":"음식",
+  "water":"물",
+  "cat":"고양이",
+  "dog":"강아지",
+  "apple":"사과",
+  "banana":"바나나",
+  "today":"오늘",
+  "tomorrow":"내일"
+
+};
 
 function swapLang(){
 
@@ -366,33 +391,11 @@ function swapLang(){
   output.value = tempText;
 }
 
-async function tryTranslate(url,text,from,to){
-
-  const response = await fetch(url,{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify({
-      q:text,
-      source:from,
-      target:to,
-      format:"text"
-    })
-  });
-
-  if(!response.ok){
-
-    throw new Error("서버 실패");
-  }
-
-  return await response.json();
-}
-
-async function translateText(){
+function translateText(){
 
   const input =
-    document.getElementById("input");
+    document.getElementById("input").value
+    .trim();
 
   const output =
     document.getElementById("output");
@@ -400,84 +403,30 @@ async function translateText(){
   const status =
     document.getElementById("status");
 
-  const button =
-    document.getElementById("translateBtn");
-
-  const text =
-    input.value.trim();
-
-  if(text === ""){
+  if(input === ""){
 
     alert("내용 입력");
     return;
   }
 
-  const from =
-    document.getElementById("from").value;
+  status.innerText = "번역중...";
 
-  const to =
-    document.getElementById("to").value;
+  const lower =
+    input.toLowerCase();
 
-  if(from === to){
-
-    output.value = text;
-    return;
-  }
-
-  button.disabled = true;
-
-  output.value = "번역중...";
-  status.innerText = "서버 연결중...";
-
-  let translated = false;
-
-  for(let i=0;i<servers.length;i++){
-
-    try{
-
-      status.innerText =
-        "서버 시도중 " + (i+1);
-
-      const data =
-        await tryTranslate(
-          servers[i],
-          text,
-          from,
-          to
-        );
-
-      if(data.translatedText){
-
-        output.value =
-          data.translatedText;
-
-        status.innerText =
-          "번역 완료";
-
-        translated = true;
-
-        break;
-      }
-
-    }catch(error){
-
-      console.log(
-        "서버 실패:",
-        servers[i]
-      );
-    }
-  }
-
-  if(!translated){
+  if(miniDictionary[lower]){
 
     output.value =
-      "현재 번역 서버 사용량 많음";
+      miniDictionary[lower];
 
-    status.innerText =
-      "잠시 후 다시 시도";
+  }else{
+
+    output.value =
+      "번역 데이터 없음\n\n입력한 내용:\n" + input;
   }
 
-  button.disabled = false;
+  status.innerText =
+    "번역 완료";
 }
 
 function copyText(){
